@@ -1,0 +1,1590 @@
+<!DOCTYPE html>
+<html lang="uz">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Korporativ Chat</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        /* ==================== ROOT ==================== */
+        :root {
+            --bg-primary: #0e1621;
+            --bg-secondary: #17212b;
+            --bg-tertiary: #1e2a36;
+            --bg-hover: #2b3a4a;
+            --text-primary: #e8edf3;
+            --text-secondary: #8d9aa8;
+            --text-muted: #5e6f7d;
+            --accent-blue: #2481cc;
+            --accent-blue-hover: #4a9eff;
+            --accent-green: #4caf50;
+            --accent-red: #e74c3c;
+            --border-color: #2b3a4a;
+            --shadow: 0 8px 32px rgba(0,0,0,0.4);
+            --radius: 12px;
+            --radius-sm: 8px;
+            --transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            --message-own: #2481cc;
+            --message-other: #1e2a36;
+        }
+
+        /* ===== LIGHT MODE ===== */
+        body.light-mode {
+            --bg-primary: #ffffff;
+            --bg-secondary: #f0f2f5;
+            --bg-tertiary: #e4e6eb;
+            --bg-hover: #d8dadf;
+            --text-primary: #1c1e21;
+            --text-secondary: #65676b;
+            --text-muted: #8d949e;
+            --border-color: #ced0d4;
+            --shadow: 0 8px 32px rgba(0,0,0,0.1);
+            --message-own: #0084ff;
+            --message-other: #e4e6eb;
+        }
+
+        /* ===== DARK MODE (standart) ===== */
+        body.dark-mode {
+            --bg-primary: #0e1621;
+            --bg-secondary: #17212b;
+            --bg-tertiary: #1e2a36;
+            --bg-hover: #2b3a4a;
+            --text-primary: #e8edf3;
+            --text-secondary: #8d9aa8;
+            --text-muted: #5e6f7d;
+            --border-color: #2b3a4a;
+            --shadow: 0 8px 32px rgba(0,0,0,0.4);
+            --message-own: #2481cc;
+            --message-other: #1e2a36;
+        }
+
+        /* ==================== RESET ==================== */
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        
+        body {
+            font-family: 'Inter', -apple-system, sans-serif;
+            background: var(--bg-primary);
+            color: var(--text-primary);
+            height: 100vh;
+            overflow: hidden;
+            transition: all 0.3s ease;
+        }
+
+        /* ===== IKONKALAR - ORQA FONI KESILGAN ===== */
+        .icon-attach, .icon-send, .icon-settings, .icon-view, .icon-lock {
+            display: inline-block;
+            width: 24px;
+            height: 24px;
+            object-fit: contain;
+            mix-blend-mode: multiply;
+            filter: contrast(1.2) brightness(1.1);
+            transition: all 0.3s;
+        }
+        
+        /* Admin qulfi - orqa foni kesilgan */
+        .icon-lock {
+            width: 64px;
+            height: 64px;
+            mix-blend-mode: multiply;
+            filter: contrast(1.3) brightness(1.1);
+        }
+
+        .icon-view {
+            width: 20px !important;
+            height: 20px !important;
+            mix-blend-mode: screen;
+            filter: invert(0.7) brightness(1.5);
+        }
+        
+        .icon-send {
+            filter: invert(1) brightness(2);
+            mix-blend-mode: screen;
+            width: 22px;
+            height: 22px;
+        }
+        
+        .icon-settings {
+            width: 22px;
+            height: 22px;
+            mix-blend-mode: multiply;
+            filter: contrast(1.2) brightness(1.1);
+        }
+
+        /* ===== LIGHT MODE IKONKALAR ===== */
+        body.light-mode .icon-attach,
+        body.light-mode .icon-settings,
+        body.light-mode .icon-lock {
+            mix-blend-mode: normal;
+            filter: none;
+        }
+
+        body.light-mode .icon-send {
+            filter: brightness(0) invert(0);
+            mix-blend-mode: normal;
+        }
+
+        body.light-mode .icon-view {
+            filter: brightness(0.3);
+            mix-blend-mode: normal;
+        }
+
+        /* ===== EMOJI PANEL ===== */
+        .emoji-panel {
+            position: absolute;
+            bottom: 70px;
+            left: 10px;
+            background: var(--bg-secondary);
+            border: 1px solid var(--border-color);
+            border-radius: var(--radius);
+            padding: 12px;
+            display: none;
+            grid-template-columns: repeat(6, 1fr);
+            gap: 6px;
+            box-shadow: var(--shadow);
+            max-width: 280px;
+            z-index: 100;
+        }
+
+        .emoji-panel.show {
+            display: grid;
+        }
+
+        .emoji-btn {
+            background: transparent;
+            border: none;
+            font-size: 24px;
+            cursor: pointer;
+            padding: 4px;
+            border-radius: 4px;
+            transition: all 0.2s;
+            text-align: center;
+        }
+
+        .emoji-btn:hover {
+            background: var(--bg-hover);
+            transform: scale(1.2);
+        }
+
+        /* ===== LOGIN ===== */
+        .login-container {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            min-height: 100vh;
+            background: var(--bg-primary);
+            padding: 20px;
+            transition: all 0.3s ease;
+        }
+
+        .login-box {
+            background: var(--bg-secondary);
+            border-radius: var(--radius);
+            padding: 40px;
+            width: 100%;
+            max-width: 420px;
+            box-shadow: var(--shadow);
+            border: 1px solid var(--border-color);
+        }
+
+        .login-header {
+            text-align: center;
+            margin-bottom: 30px;
+        }
+
+        .login-header h1 {
+            font-size: 28px;
+            font-weight: 700;
+            background: linear-gradient(135deg, var(--accent-blue), var(--accent-blue-hover));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .login-subtitle {
+            color: var(--text-secondary);
+            font-size: 14px;
+            margin-top: 4px;
+        }
+
+        .login-logo {
+            width: 64px;
+            height: 64px;
+            object-fit: contain;
+            mix-blend-mode: multiply;
+            filter: contrast(1.3) brightness(1.1);
+            margin-bottom: 12px;
+        }
+
+        body.light-mode .login-logo {
+            mix-blend-mode: normal;
+            filter: none;
+        }
+
+        /* Mode toggle */
+        .mode-toggle {
+            display: flex;
+            justify-content: center;
+            gap: 12px;
+            margin-bottom: 20px;
+        }
+
+        .mode-btn {
+            padding: 8px 20px;
+            border: 2px solid var(--border-color);
+            border-radius: 20px;
+            background: transparent;
+            color: var(--text-secondary);
+            cursor: pointer;
+            transition: all 0.3s;
+            font-family: inherit;
+            font-size: 13px;
+            font-weight: 500;
+        }
+
+        .mode-btn.active {
+            border-color: var(--accent-blue);
+            background: var(--accent-blue);
+            color: white;
+        }
+
+        .mode-btn:hover:not(.active) {
+            border-color: var(--accent-blue);
+            color: var(--text-primary);
+        }
+
+        .login-tabs {
+            display: flex;
+            gap: 8px;
+            background: var(--bg-tertiary);
+            border-radius: var(--radius-sm);
+            padding: 4px;
+            margin-bottom: 24px;
+        }
+
+        .login-tab {
+            flex: 1;
+            padding: 10px;
+            border: none;
+            background: transparent;
+            color: var(--text-secondary);
+            font-weight: 500;
+            font-size: 14px;
+            border-radius: 6px;
+            cursor: pointer;
+            transition: all 0.3s;
+            font-family: inherit;
+        }
+
+        .login-tab.active {
+            background: var(--accent-blue);
+            color: white;
+        }
+
+        .login-tab:hover:not(.active) {
+            color: var(--text-primary);
+        }
+
+        .login-form { display: none; }
+        .login-form.active { display: block; animation: fadeIn 0.3s ease; }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .form-group { margin-bottom: 18px; }
+        .form-group label {
+            display: block;
+            font-size: 13px;
+            color: var(--text-secondary);
+            margin-bottom: 6px;
+            font-weight: 500;
+        }
+
+        .form-input {
+            width: 100%;
+            padding: 12px 16px;
+            background: var(--bg-tertiary);
+            border: 2px solid transparent;
+            border-radius: var(--radius-sm);
+            color: var(--text-primary);
+            font-size: 15px;
+            outline: none;
+            transition: all 0.3s;
+            font-family: inherit;
+        }
+
+        .form-input:focus {
+            border-color: var(--accent-blue);
+            background: var(--bg-hover);
+        }
+
+        .form-input.small { padding: 8px 12px; font-size: 13px; }
+
+        .file-upload-area {
+            position: relative;
+            padding: 30px 20px;
+            background: var(--bg-tertiary);
+            border: 2px dashed var(--border-color);
+            border-radius: var(--radius-sm);
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+
+        .file-upload-area:hover {
+            border-color: var(--accent-blue);
+            background: var(--bg-hover);
+        }
+
+        .file-upload-area.small { padding: 16px; margin-bottom: 8px; }
+        .file-input {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            opacity: 0;
+            cursor: pointer;
+        }
+
+        .upload-icon { font-size: 32px; display: block; margin-bottom: 8px; }
+        .file-hint { font-size: 12px; color: var(--text-muted); display: block; margin-top: 4px; }
+
+        .face-preview { margin-top: 12px; display: none; }
+        .face-preview img {
+            width: 100px;
+            height: 100px;
+            border-radius: 50%;
+            object-fit: cover;
+            border: 3px solid var(--accent-blue);
+        }
+
+        .btn-primary {
+            width: 100%;
+            padding: 14px;
+            background: linear-gradient(135deg, var(--accent-blue), var(--accent-blue-hover));
+            border: none;
+            border-radius: var(--radius-sm);
+            color: white;
+            font-weight: 600;
+            font-size: 16px;
+            cursor: pointer;
+            transition: all 0.3s;
+            font-family: inherit;
+        }
+
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 24px rgba(36,129,204,0.3);
+        }
+
+        .btn-secondary {
+            width: 100%;
+            padding: 10px;
+            background: var(--bg-hover);
+            border: 1px solid var(--border-color);
+            border-radius: var(--radius-sm);
+            color: var(--text-primary);
+            font-weight: 500;
+            font-size: 14px;
+            cursor: pointer;
+            transition: all 0.3s;
+            font-family: inherit;
+        }
+
+        .btn-secondary:hover { background: var(--accent-blue); border-color: var(--accent-blue); }
+
+        .error-message {
+            background: rgba(231, 76, 60, 0.1);
+            border: 1px solid var(--accent-red);
+            border-radius: var(--radius-sm);
+            padding: 10px 12px;
+            color: var(--accent-red);
+            font-size: 14px;
+            margin-top: 12px;
+            display: none;
+        }
+
+        .help-text {
+            margin-top: 12px;
+            padding: 12px;
+            background: var(--bg-tertiary);
+            border-radius: var(--radius-sm);
+            font-size: 13px;
+            color: var(--text-secondary);
+            text-align: center;
+        }
+
+        .help-text .highlight { color: var(--accent-blue); font-weight: 600; }
+
+        /* ===== CHAT ===== */
+        .chat-container { display: none; height: 100vh; }
+
+        .chat-sidebar {
+            width: 320px;
+            min-width: 320px;
+            background: var(--bg-secondary);
+            border-right: 1px solid var(--border-color);
+            display: flex;
+            flex-direction: column;
+        }
+
+        .sidebar-header {
+            padding: 16px 20px;
+            border-bottom: 1px solid var(--border-color);
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+
+        .user-info {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .user-avatar {
+            width: 44px;
+            height: 44px;
+            border-radius: 50%;
+            object-fit: cover;
+            border: 2px solid var(--accent-blue);
+        }
+
+        .user-name { font-weight: 600; font-size: 16px; }
+        .user-role { font-size: 12px; color: var(--text-secondary); display: block; }
+
+        .icon-btn {
+            background: transparent;
+            border: none;
+            padding: 8px;
+            border-radius: 50%;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+
+        .icon-btn:hover { background: var(--bg-hover); }
+        .icon-btn img { opacity: 0.7; transition: all 0.3s; }
+        .icon-btn:hover img { opacity: 1; }
+
+        .online-users {
+            flex: 1;
+            overflow-y: auto;
+            padding: 0 20px 20px;
+        }
+
+        .online-users h3 {
+            font-size: 13px;
+            color: var(--text-secondary);
+            margin: 16px 0 12px;
+            font-weight: 600;
+        }
+
+        .badge {
+            background: var(--accent-blue);
+            color: white;
+            font-size: 11px;
+            padding: 2px 10px;
+            border-radius: 12px;
+            margin-left: 8px;
+        }
+
+        .users-list { display: flex; flex-direction: column; gap: 4px; }
+
+        .user-item {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 10px 12px;
+            border-radius: var(--radius-sm);
+            transition: all 0.3s;
+        }
+
+        .user-item:hover { background: var(--bg-hover); }
+
+        .avatar-small {
+            width: 36px;
+            height: 36px;
+            border-radius: 50%;
+            object-fit: cover;
+        }
+
+        .username { font-size: 14px; font-weight: 500; }
+
+        .status-dot {
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            margin-left: auto;
+        }
+
+        .status-dot.online {
+            background: var(--accent-green);
+            box-shadow: 0 0 8px rgba(76,175,80,0.5);
+        }
+
+        .admin-panel {
+            border-top: 2px solid var(--accent-blue);
+            padding: 16px 20px;
+            background: var(--bg-tertiary);
+            display: none;
+        }
+
+        .admin-panel h3 {
+            font-size: 14px;
+            color: var(--accent-blue);
+            margin-bottom: 12px;
+            font-weight: 600;
+        }
+
+        .admin-section { margin-bottom: 12px; }
+        .admin-section h4 {
+            font-size: 13px;
+            color: var(--text-secondary);
+            margin-bottom: 6px;
+            font-weight: 500;
+        }
+
+        .stats {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 8px;
+        }
+
+        .stat-item {
+            background: var(--bg-secondary);
+            padding: 8px 12px;
+            border-radius: var(--radius-sm);
+            font-size: 13px;
+        }
+
+        .stat-item strong {
+            display: block;
+            font-size: 18px;
+            color: var(--accent-blue);
+            margin-top: 2px;
+        }
+
+        .chat-main {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .chat-header {
+            padding: 16px 24px;
+            border-bottom: 1px solid var(--border-color);
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+
+        .chat-header h2 { font-size: 18px; font-weight: 600; }
+        .chat-status { font-size: 13px; color: var(--accent-green); }
+
+        .messages-container {
+            flex: 1;
+            overflow-y: auto;
+            padding: 20px 24px;
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+
+        .message-wrapper {
+            display: flex;
+            flex-direction: column;
+            max-width: 70%;
+            animation: slideIn 0.3s ease;
+        }
+
+        @keyframes slideIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .message-wrapper.own { align-self: flex-end; }
+        .message-wrapper.other { align-self: flex-start; }
+
+        .message-bubble {
+            padding: 12px 16px;
+            border-radius: var(--radius);
+            word-wrap: break-word;
+        }
+
+        .message-wrapper.own .message-bubble {
+            background: var(--message-own);
+            color: white;
+            border-bottom-right-radius: 4px;
+        }
+
+        .message-wrapper.other .message-bubble {
+            background: var(--message-other);
+            border-bottom-left-radius: 4px;
+        }
+
+        .message-sender {
+            font-size: 12px;
+            font-weight: 600;
+            color: var(--text-secondary);
+            margin-bottom: 4px;
+        }
+
+        .message-wrapper.own .message-sender { color: rgba(255,255,255,0.8); }
+
+        .message-text { font-size: 15px; line-height: 1.5; }
+
+        /* Rasm/video - chegarasiz, chiroyli */
+        .message-media {
+            max-width: 300px;
+            max-height: 300px;
+            border-radius: 8px;
+            margin: 4px 0;
+            display: block;
+            border: none;
+            outline: none;
+        }
+
+        .message-media.video {
+            max-height: 300px;
+        }
+
+        .message-time {
+            font-size: 11px;
+            color: var(--text-muted);
+            margin-top: 4px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .message-views {
+            display: flex;
+            align-items: center;
+            gap: 4px;
+            font-size: 12px;
+            color: var(--text-muted);
+        }
+
+        .message-views img {
+            width: 18px !important;
+            height: 18px !important;
+            mix-blend-mode: screen;
+            filter: invert(0.7) brightness(1.5);
+        }
+
+        body.light-mode .message-views img {
+            filter: brightness(0.3);
+            mix-blend-mode: normal;
+        }
+
+        /* ===== CHAT INPUT ===== */
+        .chat-input-area {
+            padding: 12px 20px;
+            border-top: 1px solid var(--border-color);
+            display: flex;
+            align-items: flex-end;
+            gap: 10px;
+            background: var(--bg-secondary);
+            position: relative;
+        }
+
+        .input-wrapper {
+            flex: 1;
+            display: flex;
+            align-items: flex-end;
+            gap: 6px;
+            background: var(--bg-tertiary);
+            border-radius: 24px;
+            padding: 4px;
+            border: 2px solid transparent;
+            transition: all 0.3s;
+        }
+
+        .input-wrapper:focus-within { border-color: var(--accent-blue); }
+
+        .message-input {
+            flex: 1;
+            padding: 10px 14px;
+            background: transparent;
+            border: none;
+            color: var(--text-primary);
+            font-size: 15px;
+            resize: none;
+            max-height: 120px;
+            outline: none;
+            font-family: inherit;
+        }
+
+        .message-input::placeholder { color: var(--text-muted); }
+
+        .send-btn {
+            padding: 8px 12px;
+            background: var(--accent-blue);
+            border: none;
+            border-radius: 50%;
+            cursor: pointer;
+            transition: all 0.3s;
+            min-width: 40px;
+            min-height: 40px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .send-btn:hover {
+            background: var(--accent-blue-hover);
+            transform: scale(1.05);
+        }
+
+        .send-btn img {
+            width: 22px;
+            height: 22px;
+            filter: invert(1) brightness(2);
+        }
+
+        #attachBtn img {
+            width: 24px;
+            height: 24px;
+            mix-blend-mode: multiply;
+            filter: contrast(1.2) brightness(1.1);
+        }
+
+        body.light-mode #attachBtn img {
+            mix-blend-mode: normal;
+            filter: none;
+        }
+
+        /* Emoji button */
+        .emoji-trigger {
+            background: transparent;
+            border: none;
+            font-size: 22px;
+            cursor: pointer;
+            padding: 4px 8px;
+            border-radius: 50%;
+            transition: all 0.3s;
+        }
+
+        .emoji-trigger:hover {
+            background: var(--bg-hover);
+            transform: scale(1.1);
+        }
+
+        /* ===== YUKLAB OLISH PROGRESS ===== */
+        .upload-progress {
+            display: none;
+            position: absolute;
+            bottom: 70px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: var(--bg-secondary);
+            border: 1px solid var(--border-color);
+            border-radius: var(--radius-sm);
+            padding: 16px 24px;
+            box-shadow: var(--shadow);
+            z-index: 100;
+            min-width: 200px;
+            text-align: center;
+        }
+
+        .upload-progress.show { display: block; }
+
+        .progress-bar {
+            width: 100%;
+            height: 6px;
+            background: var(--bg-tertiary);
+            border-radius: 3px;
+            margin-top: 8px;
+            overflow: hidden;
+        }
+
+        .progress-fill {
+            height: 100%;
+            background: linear-gradient(90deg, var(--accent-blue), var(--accent-blue-hover));
+            border-radius: 3px;
+            transition: width 0.3s ease;
+            width: 0%;
+        }
+
+        .progress-text {
+            font-size: 14px;
+            font-weight: 600;
+            color: var(--text-primary);
+        }
+
+        .progress-label {
+            font-size: 12px;
+            color: var(--text-secondary);
+            margin-top: 4px;
+        }
+
+        .media-preview {
+            position: relative;
+            display: inline-block;
+            margin: 4px 8px;
+        }
+
+        .media-preview img {
+            max-width: 150px;
+            max-height: 150px;
+            border-radius: 8px;
+            border: none;
+        }
+
+        .remove-media {
+            position: absolute;
+            top: -8px;
+            right: -8px;
+            width: 24px;
+            height: 24px;
+            background: var(--accent-red);
+            border: none;
+            border-radius: 50%;
+            color: white;
+            cursor: pointer;
+            font-size: 14px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .remove-media:hover { transform: scale(1.1); }
+
+        ::-webkit-scrollbar { width: 6px; }
+        ::-webkit-scrollbar-track { background: transparent; }
+        ::-webkit-scrollbar-thumb { background: var(--border-color); border-radius: 3px; }
+
+        @media (max-width: 768px) {
+            .chat-sidebar {
+                width: 100%;
+                min-width: unset;
+                max-height: 60px;
+                overflow: hidden;
+            }
+            .chat-sidebar:hover {
+                max-height: 100vh;
+                overflow-y: auto;
+            }
+            .login-box { padding: 30px 20px; }
+            .message-wrapper { max-width: 85%; }
+            .message-media { max-width: 200px; max-height: 200px; }
+        }
+    </style>
+</head>
+<body class="dark-mode">
+    <!-- LOGIN SAHIFASI -->
+    <div id="loginPage" class="login-container">
+        <div class="login-box">
+            <div class="login-header">
+                <img src="/assets/icons/admin_lock.png" alt="Logo" class="login-logo icon-lock" 
+                     onerror="this.style.display='none'">
+                <h1>Korporativ Chat</h1>
+                <p class="login-subtitle">Xavfsiz va professional aloqa</p>
+            </div>
+
+            <!-- MODE TOGGLE -->
+            <div class="mode-toggle">
+                <button class="mode-btn active" data-mode="dark">🌙 Dark</button>
+                <button class="mode-btn" data-mode="light">☀️ Light</button>
+            </div>
+            
+            <div class="login-tabs">
+                <button class="login-tab active" data-tab="admin">Admin</button>
+                <button class="login-tab" data-tab="user">Foydalanuvchi</button>
+            </div>
+            
+            <!-- ADMIN LOGIN -->
+            <form id="adminLoginForm" class="login-form active">
+                <div class="form-group">
+                    <label>Foydalanuvchi nomi</label>
+                    <input type="text" id="adminUsername" value="admin" class="form-input" readonly>
+                </div>
+                <div class="form-group">
+                    <label>Parol</label>
+                    <input type="password" id="adminPassword" placeholder="Parolni kiriting" class="form-input">
+                </div>
+                <button type="submit" class="btn-primary">Kirish</button>
+                <div id="adminError" class="error-message"></div>
+            </form>
+            
+            <!-- USER LOGIN -->
+            <form id="userLoginForm" class="login-form">
+                <div class="form-group">
+                    <label>Foydalanuvchi nomi</label>
+                    <input type="text" id="userUsername" placeholder="Ismingizni kiriting" class="form-input">
+                </div>
+                <div class="form-group">
+                    <label>Yuz rasmini yuklang</label>
+                    <div class="file-upload-area">
+                        <span class="upload-icon">📸</span>
+                        <span>Yuz rasmingizni tanlang</span>
+                        <span class="file-hint">JPG, PNG formatlar</span>
+                        <input type="file" id="faceImage" accept="image/*" capture="user" class="file-input">
+                    </div>
+                    <div id="facePreview" class="face-preview"></div>
+                </div>
+                <button type="submit" class="btn-primary">Kirish</button>
+                <div id="userError" class="error-message"></div>
+                <div class="help-text">Avval Admin panelda ro'yxatdan o'ting</div>
+            </form>
+        </div>
+    </div>
+
+    <!-- CHAT SAHIFASI -->
+    <div id="chatPage" class="chat-container" style="display:none;">
+        <div class="chat-sidebar">
+            <div class="sidebar-header">
+                <div class="user-info">
+                    <img id="currentUserAvatar" src="" alt="" class="user-avatar">
+                    <div>
+                        <span id="currentUserName" class="user-name">User</span>
+                        <span class="user-role" id="currentUserRole">Foydalanuvchi</span>
+                    </div>
+                </div>
+                <div style="display:flex; gap:4px;">
+                    <button id="themeToggle" class="icon-btn" title="Rejim">
+                        <span style="font-size:20px;">🌙</span>
+                    </button>
+                    <button id="logoutBtn" class="icon-btn" title="Chiqish">
+                        <img src="/assets/icons/settings.png" alt="Settings" class="icon-settings">
+                    </button>
+                </div>
+            </div>
+            
+            <div class="online-users">
+                <h3>Onlayn foydalanuvchilar <span id="onlineCount" class="badge">0</span></h3>
+                <div id="onlineUsersList" class="users-list"></div>
+            </div>
+            
+            <div id="adminPanel" class="admin-panel" style="display:none;">
+                <h3>Admin Boshqaruvi</h3>
+                <div class="admin-section">
+                    <h4>Yangi foydalanuvchi qo'shish</h4>
+                    <form id="registerFaceForm">
+                        <input type="text" id="newUsername" placeholder="Username" class="form-input small">
+                        <div class="file-upload-area small">
+                            <span>Yuz rasmini yuklang</span>
+                            <input type="file" id="newFaceImage" accept="image/*" class="file-input">
+                        </div>
+                        <button type="submit" class="btn-secondary">Ro'yxatdan o'tkazish</button>
+                    </form>
+                </div>
+                <div class="admin-section">
+                    <h4>Tizim statistikasi</h4>
+                    <div class="stats">
+                        <div class="stat-item">
+                            <span>Ro'yxatdagi foydalanuvchilar</span>
+                            <strong id="totalUsers">0</strong>
+                        </div>
+                        <div class="stat-item">
+                            <span>Jami xabarlar</span>
+                            <strong id="totalMessages">0</strong>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="chat-main">
+            <div class="chat-header">
+                <h2>Guruh suhbati</h2>
+                <span class="chat-status">● Onlayn</span>
+            </div>
+            
+            <div id="messagesContainer" class="messages-container"></div>
+            
+            <div class="chat-input-area">
+                <button id="attachBtn" class="icon-btn" title="Rasm/video yuklash">
+                    <img src="/assets/icons/attach_file.png" alt="Attach" class="icon-attach">
+                </button>
+                <input type="file" id="mediaInput" accept="image/*,video/*" style="display:none;">
+                
+                <button class="emoji-trigger" id="emojiTrigger" title="Smaylik">😊</button>
+                
+                <div class="emoji-panel" id="emojiPanel">
+                    <button class="emoji-btn">😊</button>
+                    <button class="emoji-btn">😂</button>
+                    <button class="emoji-btn">❤️</button>
+                    <button class="emoji-btn">🔥</button>
+                    <button class="emoji-btn">👍</button>
+                    <button class="emoji-btn">👏</button>
+                    <button class="emoji-btn">😍</button>
+                    <button class="emoji-btn">🤣</button>
+                    <button class="emoji-btn">😘</button>
+                    <button class="emoji-btn">🥰</button>
+                    <button class="emoji-btn">😎</button>
+                    <button class="emoji-btn">🤗</button>
+                    <button class="emoji-btn">💪</button>
+                    <button class="emoji-btn">🤝</button>
+                    <button class="emoji-btn">🎉</button>
+                    <button class="emoji-btn">✨</button>
+                    <button class="emoji-btn">💯</button>
+                    <button class="emoji-btn">🏆</button>
+                </div>
+                
+                <div class="upload-progress" id="uploadProgress">
+                    <div class="progress-text" id="progressText">0%</div>
+                    <div class="progress-bar">
+                        <div class="progress-fill" id="progressFill"></div>
+                    </div>
+                    <div class="progress-label" id="progressLabel">Yuklanmoqda...</div>
+                </div>
+                
+                <div class="input-wrapper">
+                    <textarea id="messageInput" rows="1" placeholder="Xabar yozing..." class="message-input"></textarea>
+                    <button id="sendBtn" class="send-btn">
+                        <img src="/assets/icons/send_message.png" alt="Send" class="icon-send">
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // ==================== GLOBAL ====================
+        const state = {
+            currentUser: null,
+            isAdmin: false,
+            ws: null,
+            username: '',
+            mediaPreview: null,
+            mediaData: null,
+            mediaType: null,
+            isDarkMode: true
+        };
+
+        // ==================== DOM ====================
+        const $ = id => document.getElementById(id);
+        const DOM = {
+            loginPage: $('loginPage'),
+            chatPage: $('chatPage'),
+            adminLoginForm: $('adminLoginForm'),
+            userLoginForm: $('userLoginForm'),
+            adminPassword: $('adminPassword'),
+            userUsername: $('userUsername'),
+            faceImage: $('faceImage'),
+            facePreview: $('facePreview'),
+            adminError: $('adminError'),
+            userError: $('userError'),
+            messagesContainer: $('messagesContainer'),
+            messageInput: $('messageInput'),
+            sendBtn: $('sendBtn'),
+            attachBtn: $('attachBtn'),
+            mediaInput: $('mediaInput'),
+            logoutBtn: $('logoutBtn'),
+            currentUserAvatar: $('currentUserAvatar'),
+            currentUserName: $('currentUserName'),
+            currentUserRole: $('currentUserRole'),
+            onlineUsersList: $('onlineUsersList'),
+            onlineCount: $('onlineCount'),
+            adminPanel: $('adminPanel'),
+            registerFaceForm: $('registerFaceForm'),
+            newUsername: $('newUsername'),
+            newFaceImage: $('newFaceImage'),
+            totalUsers: $('totalUsers'),
+            totalMessages: $('totalMessages'),
+            loginTabs: document.querySelectorAll('.login-tab'),
+            loginForms: document.querySelectorAll('.login-form'),
+            modeBtns: document.querySelectorAll('.mode-btn'),
+            themeToggle: $('themeToggle'),
+            emojiTrigger: $('emojiTrigger'),
+            emojiPanel: $('emojiPanel'),
+            uploadProgress: $('uploadProgress'),
+            progressFill: $('progressFill'),
+            progressText: $('progressText'),
+            progressLabel: $('progressLabel')
+        };
+
+        // ==================== UTILITY ====================
+        function formatTime(ts) {
+            const d = new Date(ts);
+            return String(d.getHours()).padStart(2,'0') + ':' + String(d.getMinutes()).padStart(2,'0');
+        }
+
+        function scrollToBottom() {
+            DOM.messagesContainer.scrollTop = DOM.messagesContainer.scrollHeight;
+        }
+
+        // ==================== MODE TOGGLE ====================
+        function setMode(mode) {
+            document.body.className = mode === 'dark' ? 'dark-mode' : 'light-mode';
+            state.isDarkMode = mode === 'dark';
+            
+            DOM.modeBtns.forEach(btn => {
+                btn.classList.toggle('active', btn.dataset.mode === mode);
+            });
+            
+            DOM.themeToggle.innerHTML = mode === 'dark' ? '🌙' : '☀️';
+            
+            localStorage.setItem('chat-theme', mode);
+        }
+
+        // Mode buttons
+        DOM.modeBtns.forEach(btn => {
+            btn.addEventListener('click', function() {
+                setMode(this.dataset.mode);
+            });
+        });
+
+        DOM.themeToggle.addEventListener('click', function() {
+            setMode(state.isDarkMode ? 'light' : 'dark');
+        });
+
+        // Load saved theme
+        const savedTheme = localStorage.getItem('chat-theme') || 'dark';
+        setMode(savedTheme);
+
+        // ==================== EMOJI PANEL ====================
+        DOM.emojiTrigger.addEventListener('click', function(e) {
+            e.stopPropagation();
+            DOM.emojiPanel.classList.toggle('show');
+        });
+
+        document.addEventListener('click', function(e) {
+            if (!DOM.emojiPanel.contains(e.target) && e.target !== DOM.emojiTrigger) {
+                DOM.emojiPanel.classList.remove('show');
+            }
+        });
+
+        document.querySelectorAll('.emoji-btn').forEach(btn => {
+            btn.addEventListener('click', function() {
+                DOM.messageInput.value += this.textContent;
+                DOM.messageInput.focus();
+                DOM.emojiPanel.classList.remove('show');
+                DOM.messageInput.dispatchEvent(new Event('input'));
+            });
+        });
+
+        // ==================== LOGIN TABS ====================
+        DOM.loginTabs.forEach(tab => {
+            tab.addEventListener('click', function() {
+                DOM.loginTabs.forEach(t => t.classList.remove('active'));
+                DOM.loginForms.forEach(f => f.classList.remove('active'));
+                this.classList.add('active');
+                document.getElementById(this.dataset.tab + 'LoginForm').classList.add('active');
+            });
+        });
+
+        // ==================== FACE PREVIEW ====================
+        DOM.faceImage.addEventListener('change', function(e) {
+            if (this.files && this.files[0]) {
+                const reader = new FileReader();
+                reader.onload = function(e) {
+                    DOM.facePreview.style.display = 'block';
+                    DOM.facePreview.innerHTML = `<img src="${e.target.result}" alt="Face">`;
+                };
+                reader.readAsDataURL(this.files[0]);
+            }
+        });
+
+        // ==================== ADMIN LOGIN ====================
+        DOM.adminLoginForm.addEventListener('submit', async function(e) {
+            e.preventDefault();
+            DOM.adminError.style.display = 'none';
+            
+            const password = DOM.adminPassword.value.trim();
+            if (!password) {
+                DOM.adminError.textContent = 'Iltimos, parolni kiriting!';
+                DOM.adminError.style.display = 'block';
+                return;
+            }
+            
+            try {
+                const formData = new FormData();
+                formData.append('username', 'admin');
+                formData.append('password', password);
+                
+                const res = await fetch('/api/login', { method: 'POST', body: formData });
+                const data = await res.json();
+                
+                if (data.success) {
+                    state.currentUser = data;
+                    state.isAdmin = true;
+                    state.username = 'admin';
+                    initChat(data);
+                } else {
+                    DOM.adminError.textContent = data.detail || 'Parol xato!';
+                    DOM.adminError.style.display = 'block';
+                }
+            } catch(e) {
+                DOM.adminError.textContent = 'Server bilan bog\'lanish xatosi!';
+                DOM.adminError.style.display = 'block';
+            }
+        });
+
+        // ==================== USER LOGIN ====================
+        DOM.userLoginForm.addEventListener('submit', async function(e) {
+            e.preventDefault();
+            DOM.userError.style.display = 'none';
+            
+            const username = DOM.userUsername.value.trim();
+            const faceFile = DOM.faceImage.files[0];
+            
+            if (!username) {
+                DOM.userError.textContent = 'Iltimos, ismingizni kiriting!';
+                DOM.userError.style.display = 'block';
+                return;
+            }
+            if (!faceFile) {
+                DOM.userError.textContent = 'Iltimos, yuz rasmingizni yuklang!';
+                DOM.userError.style.display = 'block';
+                return;
+            }
+            
+            try {
+                const formData = new FormData();
+                formData.append('username', username);
+                formData.append('face_image', faceFile);
+                
+                const res = await fetch('/api/login', { method: 'POST', body: formData });
+                const data = await res.json();
+                
+                if (data.success) {
+                    state.currentUser = data;
+                    state.isAdmin = false;
+                    state.username = username;
+                    initChat(data);
+                } else {
+                    DOM.userError.textContent = data.detail || 'Yuz tasdiqlanmadi!';
+                    DOM.userError.style.display = 'block';
+                }
+            } catch(e) {
+                DOM.userError.textContent = 'Server xatosi! Qayta urining.';
+                DOM.userError.style.display = 'block';
+            }
+        });
+
+        // ==================== CHAT INIT ====================
+        function initChat(userData) {
+            DOM.loginPage.style.display = 'none';
+            DOM.chatPage.style.display = 'flex';
+            
+            DOM.currentUserAvatar.src = userData.avatar || '/assets/icons/user_default.png';
+            DOM.currentUserAvatar.onerror = function() {
+                this.src = "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='44' height='44'%3E%3Crect width='44' height='44' fill='%232481cc' rx='50%25'/%3E%3Ctext x='22' y='28' text-anchor='middle' fill='white' font-size='20' font-weight='bold'%3E" + userData.username[0].toUpperCase() + "%3C/text%3E%3C/svg%3E";
+            };
+            DOM.currentUserName.textContent = userData.username;
+            DOM.currentUserRole.textContent = userData.role === 'admin' ? 'Admin' : 'Foydalanuvchi';
+            
+            if (userData.role === 'admin') {
+                DOM.adminPanel.style.display = 'block';
+                updateAdminStats();
+            }
+            
+            connectWebSocket(userData.username);
+            loadMessages();
+            setupEvents();
+        }
+
+        // ==================== WEBSOCKET ====================
+        function connectWebSocket(username) {
+            const protocol = window.location.protocol === "https:" ? "wss" : "ws";
+            const wsUrl = `${protocol}://${window.location.host}/ws/${username}`;
+            state.ws = new WebSocket(wsUrl);
+            
+            state.ws.onopen = () => {
+                fetchOnlineUsers();
+            };
+            
+            state.ws.onmessage = (event) => {
+                const data = JSON.parse(event.data);
+                handleWSMessage(data);
+            };
+            
+            state.ws.onclose = () => {
+                setTimeout(() => connectWebSocket(username), 3000);
+            };
+        }
+
+        function handleWSMessage(data) {
+            if (data.type === 'new_message') {
+                addMessage(data.message);
+            } else if (data.type === 'update_views') {
+                updateViews(data.msg_id, data.view_count);
+            } else if (data.type === 'user_status') {
+                fetchOnlineUsers();
+            }
+        }
+
+        // ==================== MESSAGES ====================
+        function addMessage(msg) {
+            const isOwn = msg.sender === state.username;
+            const wrapper = document.createElement('div');
+            wrapper.className = `message-wrapper ${isOwn ? 'own' : 'other'}`;
+            wrapper.dataset.msgId = msg.id;
+            
+            let contentHtml = '';
+            if (msg.type === 'text') {
+                contentHtml = `<div class="message-text">${msg.content}</div>`;
+            } else if (msg.type === 'image') {
+                contentHtml = `<img src="${msg.media}" class="message-media" alt="Image">`;
+                if (msg.content) contentHtml += `<div class="message-text">${msg.content}</div>`;
+            } else if (msg.type === 'video') {
+                contentHtml = `<video src="${msg.media}" class="message-media video" controls></video>`;
+                if (msg.content) contentHtml += `<div class="message-text">${msg.content}</div>`;
+            }
+            
+            wrapper.innerHTML = `
+                <div class="message-sender">${isOwn ? 'Siz' : msg.sender}</div>
+                <div class="message-bubble">
+                    ${contentHtml}
+                    <div class="message-time">
+                        <span>${formatTime(msg.timestamp)}</span>
+                        <span class="message-views">
+                            <img src="/assets/icons/view_eye.png" alt="Views">
+                            <span class="view-count">${msg.view_count || 0}</span>
+                        </span>
+                    </div>
+                </div>
+            `;
+            
+            DOM.messagesContainer.appendChild(wrapper);
+            scrollToBottom();
+            
+            if (!isOwn) {
+                markViewed(msg.id);
+            }
+        }
+
+        function updateViews(msgId, count) {
+            const msgs = DOM.messagesContainer.querySelectorAll('.message-wrapper');
+            for (const el of msgs) {
+                if (el.dataset.msgId === msgId) {
+                    const viewsSpan = el.querySelector('.view-count');
+                    if (viewsSpan) viewsSpan.textContent = count;
+                    break;
+                }
+            }
+        }
+
+        function markViewed(msgId) {
+            if (state.ws && state.ws.readyState === WebSocket.OPEN) {
+                state.ws.send(JSON.stringify({ type: 'view_action', msg_id: msgId }));
+            }
+        }
+
+        async function loadMessages() {
+            try {
+                const res = await fetch('/api/messages');
+                const data = await res.json();
+                if (data.messages) {
+                    DOM.messagesContainer.innerHTML = '';
+                    data.messages.forEach(m => addMessage(m));
+                    scrollToBottom();
+                }
+            } catch(e) {}
+        }
+
+        // ==================== ONLINE USERS ====================
+        async function fetchOnlineUsers() {
+            try {
+                const res = await fetch('/api/users/online');
+                const data = await res.json();
+                
+                DOM.onlineUsersList.innerHTML = '';
+                DOM.onlineCount.textContent = data.online_users.length;
+                
+                data.online_users.forEach(username => {
+                    const item = document.createElement('div');
+                    item.className = 'user-item';
+                    const isAdmin = username === 'admin';
+                    item.innerHTML = `
+                        <img src="${isAdmin ? '/assets/icons/admin_lock.png' : '/assets/icons/user_default.png'}" class="avatar-small" 
+                             onerror="this.src='data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 width=%2236%22 height=%2236%22%3E%3Crect width=%2236%22 height=%2236%22 fill=%22%232481cc%22 rx=%2250%25%22/%3E%3Ctext x=%2218%22 y=%2224%22 text-anchor=%22middle%22 fill=%22white%22 font-size=%2216%22%3E${username[0].toUpperCase()}%3C/text%3E%3C/svg%3E'">
+                        <span class="username">${username}</span>
+                        <span class="status-dot online"></span>
+                    `;
+                    DOM.onlineUsersList.appendChild(item);
+                });
+            } catch(e) {}
+        }
+
+        // ==================== ADMIN STATS ====================
+        async function updateAdminStats() {
+            try {
+                const regRes = await fetch('/api/users/registered');
+                const regData = await regRes.json();
+                DOM.totalUsers.textContent = regData.registered_users?.length || 0;
+                
+                const msgRes = await fetch('/api/messages');
+                const msgData = await msgRes.json();
+                DOM.totalMessages.textContent = msgData.messages?.length || 0;
+            } catch(e) {}
+        }
+
+        // ==================== EVENTS ====================
+        function setupEvents() {
+            DOM.sendBtn.addEventListener('click', sendMessage);
+            DOM.messageInput.addEventListener('keydown', function(e) {
+                if (e.key === 'Enter' && !e.shiftKey) {
+                    e.preventDefault();
+                    sendMessage();
+                }
+            });
+            
+            DOM.messageInput.addEventListener('input', function() {
+                this.style.height = 'auto';
+                this.style.height = Math.min(this.scrollHeight, 120) + 'px';
+            });
+            
+            DOM.attachBtn.addEventListener('click', () => DOM.mediaInput.click());
+            DOM.mediaInput.addEventListener('change', function(e) {
+                if (this.files && this.files[0]) {
+                    const file = this.files[0];
+                    const isVideo = file.type.startsWith('video/');
+                    handleMedia(file, isVideo);
+                }
+            });
+            
+            DOM.logoutBtn.addEventListener('click', () => {
+                if (confirm('Haqiqatan ham chiqmoqchimisiz?')) {
+                    if (state.ws) state.ws.close();
+                    location.reload();
+                }
+            });
+            
+            DOM.registerFaceForm.addEventListener('submit', async function(e) {
+                e.preventDefault();
+                const username = DOM.newUsername.value.trim();
+                const faceFile = DOM.newFaceImage.files[0];
+                
+                if (!username || !faceFile) {
+                    alert('Barcha maydonlarni to\'ldiring!');
+                    return;
+                }
+                
+                try {
+                    const formData = new FormData();
+                    formData.append('username', username);
+                    formData.append('face_image', faceFile);
+                    
+                    const res = await fetch('/api/admin/register-face', { method: 'POST', body: formData });
+                    const data = await res.json();
+                    
+                    if (data.success) {
+                        alert(`${username} muvaffaqiyatli ro'yxatdan o'tkazildi!`);
+                        DOM.newUsername.value = '';
+                        DOM.newFaceImage.value = '';
+                        updateAdminStats();
+                    } else {
+                        alert('Xatolik: ' + (data.detail || 'Noma\'lum'));
+                    }
+                } catch(e) {
+                    alert('Server xatosi!');
+                }
+            });
+        }
+
+        // ==================== SEND MESSAGE ====================
+        function sendMessage() {
+            const content = DOM.messageInput.value.trim();
+            if (!content && !state.mediaData) return;
+            
+            if (!state.ws || state.ws.readyState !== WebSocket.OPEN) {
+                alert('Aloqa uzilgan!');
+                return;
+            }
+            
+            const msg = { type: 'chat_message', content: content };
+            
+            if (state.mediaData) {
+                msg.type = 'media_message';
+                msg.media_type = state.mediaType || 'image';
+                msg.media_data = state.mediaData;
+            }
+            
+            state.ws.send(JSON.stringify(msg));
+            DOM.messageInput.value = '';
+            DOM.messageInput.style.height = 'auto';
+            clearMedia();
+        }
+
+        // ==================== MEDIA (YUKLASH PROGRESS BILAN) ====================
+        function handleMedia(file, isVideo = false) {
+            const chunkSize = 1024 * 64; // 64KB
+            const totalSize = file.size;
+            let loaded = 0;
+            
+            DOM.uploadProgress.classList.add('show');
+            DOM.progressFill.style.width = '0%';
+            DOM.progressText.textContent = '0%';
+            DOM.progressLabel.textContent = isVideo ? '🎬 Video yuklanmoqda...' : '🖼️ Rasm yuklanmoqda...';
+            
+            const reader = new FileReader();
+            
+            reader.onload = function(e) {
+                loaded += e.loaded || chunkSize;
+                const percent = Math.min(100, Math.round((loaded / totalSize) * 100));
+                
+                DOM.progressFill.style.width = percent + '%';
+                DOM.progressText.textContent = percent + '%';
+                
+                if (percent < 100) {
+                    // Davom etish
+                    const start = loaded;
+                    const end = Math.min(start + chunkSize, totalSize);
+                    const slice = file.slice(start, end);
+                    reader.readAsDataURL(slice);
+                } else {
+                    // Yuklash tugadi
+                    DOM.progressFill.style.width = '100%';
+                    DOM.progressText.textContent = '100%';
+                    DOM.progressLabel.textContent = '✅ Yuklandi!';
+                    
+                    setTimeout(() => {
+                        DOM.uploadProgress.classList.remove('show');
+                    }, 500);
+                    
+                    state.mediaData = e.target.result;
+                    state.mediaType = isVideo ? 'video' : 'image';
+                    
+                    // Preview
+                    const preview = document.createElement('div');
+                    preview.className = 'media-preview';
+                    preview.innerHTML = `
+                        ${isVideo ? 
+                            `<video src="${state.mediaData}" style="max-width:150px; max-height:150px; border-radius:8px;" controls></video>` :
+                            `<img src="${state.mediaData}" style="max-width:150px; max-height:150px; border-radius:8px;">`
+                        }
+                        <button class="remove-media" onclick="clearMedia()">×</button>
+                    `;
+                    
+                    const wrapper = document.querySelector('.input-wrapper');
+                    wrapper.insertBefore(preview, DOM.messageInput);
+                    state.mediaPreview = preview;
+                }
+            };
+            
+            reader.onprogress = function(e) {
+                if (e.lengthComputable) {
+                    const percent = Math.min(100, Math.round((e.loaded / e.total) * 100));
+                    DOM.progressFill.style.width = percent + '%';
+                    DOM.progressText.textContent = percent + '%';
+                }
+            };
+            
+            // Birinchi qismni o'qish
+            const firstSlice = file.slice(0, Math.min(chunkSize, totalSize));
+            reader.readAsDataURL(firstSlice);
+        }
+
+        window.clearMedia = function() {
+            if (state.mediaPreview) {
+                state.mediaPreview.remove();
+                state.mediaPreview = null;
+                state.mediaData = null;
+                state.mediaType = null;
+            }
+            DOM.mediaInput.value = '';
+            DOM.uploadProgress.classList.remove('show');
+        };
+
+        console.log('🎯 Korporativ Chat');
+        console.log('🔑 Admin: admin / 2010');
+        console.log('🌙 Dark/Light mode');
+        console.log('😊 Emoji panel');
+        console.log('📊 Upload progress');
+    </script>
+</body>
+</html>
