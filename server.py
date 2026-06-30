@@ -1,5 +1,5 @@
 from fastapi import FastAPI, WebSocket, WebSocketDisconnect, UploadFile, File, Form, HTTPException
-from fastapi.responses import FileResponse, JSONResponse
+from fastapi.responses import FileResponse, JSONResponse, HTMLResponse
 from fastapi.staticfiles import StaticFiles
 from fastapi.middleware.cors import CORSMiddleware
 import json
@@ -8,6 +8,7 @@ from typing import Dict, List
 from datetime import datetime
 import uvicorn
 import io
+import os
 from PIL import Image
 import hashlib
 import sqlite3
@@ -24,17 +25,26 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-# STATIC FAYLLAR
-app.mount("/assets", StaticFiles(directory="assets"), name="assets")
+# Loyihaning asosiy mutloq manzilini aniqlash (Render uchun eng muhimi)
+BASE_DIR = os.path.dirname(os.path.abspath(__file__))
+
+# STATIC FAYLLAR (Mutloq manzil orqali ulash)
+assets_path = os.path.join(BASE_DIR, "assets")
+if not os.path.exists(assets_path):
+    os.makedirs(assets_path, exist_ok=True)
+app.mount("/assets", StaticFiles(directory=assets_path), name="assets")
 
 # ROOT
 @app.get("/")
 async def root():
-    return FileResponse("index.html")
+    html_path = os.path.join(BASE_DIR, "index.html")
+    if os.path.exists(html_path):
+        return FileResponse(html_path)
+    return HTMLResponse("<h3>index.html fayli topilmadi!</h3>", status_code=404)
 
 # ==================== DATABASE ====================
 
-DB_PATH = "database.db"
+DB_PATH = os.path.join(BASE_DIR, "database.db")
 
 def get_db():
     conn = sqlite3.connect(DB_PATH)
@@ -399,4 +409,6 @@ if __name__ == "__main__":
     print(f"😊 Emoji panel")
     print(f"📊 Upload progress")
     print("=" * 60)
-    uvicorn.run(app, host="0.0.0.0", port=8000)
+    # Render muhitidagi dinamik portni olish tizimi
+    port = int(os.environ.get("PORT", 8000))
+    uvicorn.run(app, host="0.0.0.0", port=port)
