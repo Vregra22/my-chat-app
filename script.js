@@ -213,7 +213,9 @@ async function initializeChat(userData) {
 }
 
 function connectWebSocket(username) {
-    const wsUrl = `ws://${window.location.host}/ws/${username}`;
+    // Render xavfsiz tarmog'i uchun dinamik ravishda wss:// yoki ws:// manzilini aniqlaymiz
+    const protocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
+    const wsUrl = `${protocol}//${window.location.host}/ws/${username}`;
     state.ws = new WebSocket(wsUrl);
     
     state.ws.onopen = function() {
